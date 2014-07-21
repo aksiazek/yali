@@ -9,6 +9,7 @@ import Control.Monad.Error
 eval :: LispExpr -> LispResult
 eval Blank = return Blank
 eval (LispInt n) = return (LispInt n)
+eval (LispLambda f args) = return (LispLambda f args)
 eval (LispFunc f name args) = return (LispFunc f name args)
 eval (LispSpecial f args) = return (LispSpecial f args)
 eval (LispSymbol s) = do context <- get
@@ -23,8 +24,11 @@ eval (LispSymbol s) = do context <- get
 eval (LispList (x:xs)) = do fn <- eval x
 	                    apply fn
 	where apply (LispSpecial f expectedArgs) = apply' expectedArgs xs f
-	      apply (LispFunc f name expectedArgs) = do args <- mapM eval xs
-                                                   apply' expectedArgs args f
+	      apply (LispLambda f expectedArgs) = do args <- mapM eval xs
+                                                     apply' expectedArgs args f
+	      apply (LispFunc f _ expectedArgs) = do args <- mapM eval xs
+                                                     apply' expectedArgs args f
+              apply _ = throwError "Illegal function call"
               apply' expectedArgs args f = do modify pushContext
                                               applyArgsToContext expectedArgs args
                                               result <- f

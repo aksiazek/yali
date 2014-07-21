@@ -7,32 +7,38 @@ import Text.Parsec
 -- Parsing s-expressions
 
 parse :: String -> LispResult
-parse source = case (Text.Parsec.parse parseExpr "" source) of
+parse source = case (Text.Parsec.parse parseAll "" source) of
 		 Right x -> return x
-		 Left e -> throwError $ show e
+		 Left err -> throwError $ show err
 
-parseExpr = do skipMany space
-	       x <- parseExprPossible
-	       skipMany space ; eof
-	       return x
+parseAll = do spaces
+              x <- parseExpr
+	      spaces
+              eof
+	      return x
 
-parseExprPossible = (try parseInteger) <|> (try parseSymbol) <|> (try parseList)  <|> (try parseBlank)
+parseExpr = try parseInteger
+            <|> try parseSymbol
+            <|> try parseList
+            <|> parseBlank
+
+parseBlank = do spaces
+                return Blank
 
 parseInteger = do sign <- option "" (string "-")
 		  number <- many1 digit
 		  return $ LispInt (read (sign++number))
 
 parseSymbol = do f <- firstAllowed
-		 r <- many (firstAllowed <|> digit)
+		 r <- many $ firstAllowed <|> digit
 		 return $ LispSymbol (f:r)
-	where firstAllowed = oneOf "+-*/" <|> letter
+	where firstAllowed = oneOf "+-*/!@#$%^&=[]{};:<>,.?\\|~`" <|> letter
 
-parseBlank = do skipMany space
-                return Blank
-
-parseList = do char '(' ; skipMany space
-	       x <- parseExprPossible `sepEndBy` (many1 space)
-	       char ')'
+parseList = do char '('
+               spaces
+	       x <- parseExpr `sepBy` (many1 space)
+	       spaces
+               char ')'
 	       return $ LispList x
 
 

@@ -8,11 +8,11 @@ import Control.Monad.Error
 data LispExpr =  Blank |
                  LispInt Integer |
 	         LispSymbol String |
-	         LispFunc LispResult FunctionName FunctionSignature |
+	         LispLambda LispResult FunctionSignature |
 	         LispSpecial LispResult FunctionSignature |
+	         LispFunc LispResult FunctionName FunctionSignature |
 	         LispList [LispExpr] 
 	   
-	
 type FunctionName = String    
 type FunctionSignature = [String]
 type SymbolTable = Map.Map String LispExpr
@@ -40,6 +40,7 @@ instance Show LispExpr where
         show Blank = ""
 	show (LispInt x) = show x
 	show (LispSymbol x) = x
-	show (LispFunc state name _) = "<function "  ++ (show name) ++ ">" 
+	show (LispLambda _ sig) = "<lambda (" ++ (unwords sig) ++ ")>"
+	show (LispFunc _ name _) = "<function "  ++ (show name) ++ ">" 
 	show (LispSpecial _ _) = "<special-form>"
 	show (LispList x) = "(" ++ unwords (map show x) ++ ")"
