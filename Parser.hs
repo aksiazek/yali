@@ -21,7 +21,11 @@ parseExpr = try parseInteger
             <|> try parseSymbol
             <|> try parseList
             <|> parseBlank
-
+            
+parseExprNoBlanks = try parseInteger
+                    <|> try parseSymbol
+                    <|> try parseList
+                                
 parseBlank = do spaces
                 return Blank
 
@@ -36,8 +40,7 @@ parseSymbol = do f <- firstAllowed
 
 parseList = do char '('
                spaces
-	       x <- parseExpr `sepBy` (many1 space)
-	       spaces
+	       x <- parseExprNoBlanks `sepEndBy` (many1 space)
                char ')'
 	       return $ LispList x
 
