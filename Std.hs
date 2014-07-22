@@ -65,7 +65,7 @@ car (LispList list) = head list
 car _ = (LispSymbol "nil")
 
 cdr :: LispExpr -> LispExpr
-cdr (LispList list) = sequence (tail list)
+cdr (LispList list) = (LispList (tail list))
 cdr _ = (LispSymbol "nil")
 
 -- Set modifies context, adds variable
@@ -100,6 +100,7 @@ initialCtx = Ctx (Map.fromList
 			  ("atom", LispFunc lispAtom "atom" ["..."]), 
 			  ("eq", LispFunc lispEq "eq" ["..."]),
 			  ("car", LispFunc lispCar "car" ["..."]),
+			  ("cdr", LispFunc lispCdr "cdr" ["..."]),
 			  ("+", LispFunc (lispArithmetic (+)) "+" ["..."]),
 			  ("-", LispFunc (lispArithmetic (-)) "-" ["..."]),
 			  ("*", LispFunc (lispArithmetic (*)) "*" ["..."]),
