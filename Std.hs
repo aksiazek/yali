@@ -83,13 +83,21 @@ lispIf = do [condExpr, expr1, expr2] <- getSymbols lispIfArgs
                                         else eval expr2
     where notNil (LispSymbol val) = "nil" /= val
 
+-- Lambda function creation
+lispLambdaArgs = ["args", "..."]
+lispLambda = do [(LispList args), (LispList body)] <- getSymbols lispLambdaArgs
+                let newFn = do evalBody <- mapM eval body
+                               return $ last evalBody
+                return $ LispLambda newFn (map show args)
+
 -- Function creation
-lispFnArgs = ["args", "..."]
-lispFn = do [(LispList args), (LispList body)] <- getSymbols lispFnArgs
-        
-            let newFn = do evalBody <- mapM eval body
-                           return $ last evalBody
-            return $ LispLambda newFn (map show args)
+lispFunArgs = ["name", "args", "..."]
+lispFun = do [(LispSymbol name), (LispList args), (LispList body)] <- getSymbols lispFunArgs
+             let newFn = do evalBody <- mapM eval body
+                            return $ last evalBody
+             let lambda = LispFunc newFn name (map show args)
+             updateSymbolInParent name lambda
+             return lambda
 
 -- Symbol table
 initialCtx = Ctx (Map.fromList 
@@ -107,8 +115,8 @@ initialCtx = Ctx (Map.fromList
 			  ("/", LispFunc (lispArithmetic div) "/" ["..."]),
 			  ("setq", LispSpecial lispSet lispSetArgs),
                           ("if", LispSpecial lispIf lispIfArgs),
-                          ("lambda", LispSpecial lispFn lispFnArgs )
-                         --("defun", LispSpecial lispFn lispFnArgs )
+                          ("lambda", LispSpecial lispLambda lispLambdaArgs ),
+                          ("defun", LispSpecial lispFun lispFunArgs )
 			 ]) Nothing
 
 -- Helper
