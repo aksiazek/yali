@@ -14,6 +14,10 @@
 (eq (quote a) (quote b))
 (eq (quote ()) (quote ()))
 
+(car (quote ()))
 (car (quote (a)))
 (car (quote (a b c)))
 
+(cdr (quote ()))
+(cdr (quote (a)))
+(cdr (quote (a b c)))
