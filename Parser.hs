@@ -36,7 +36,7 @@ parseInteger = do sign <- option "" (string "-")
 parseSymbol = do f <- firstAllowed
 		 r <- many $ firstAllowed <|> digit
 		 return $ LispSymbol (f:r)
-	where firstAllowed = oneOf "+-*/!@#$%^&=[]{};:<>,.?\\|~`" <|> letter
+	where firstAllowed = oneOf "+-*/!@#$%^&=[]{};:<>,.?\\|~`'\"" <|> letter
 
 parseList = do char '('
                spaces

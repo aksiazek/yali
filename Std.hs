@@ -12,7 +12,6 @@ lispArithmetic f  = do (LispList args) <- getSymbol "..."
 lispBinary :: (Integer->Integer->Integer) -> [LispExpr] -> LispResult
 lispBinary op args = do return $ foldl1 (lispBinaryAux op) args
 	where lispBinaryAux op (LispInt i) (LispInt j) = LispInt (i `op` j)
-             -- lispBinaryAux op _ _ = throwError "Error in binary operation."
 
 -- Equality
 lispEq = do (LispList args) <- getSymbol "..."
@@ -30,8 +29,8 @@ lispQuote = getSymbol "value"
 
 lispAtomArgs = ["value"]
 lispAtom = do [expr] <- getSymbols lispAtomArgs
-              eval_e <- eval expr
-              if(isAtom eval_e) then return $ LispSymbol "t"
+              
+              if(isAtom expr) then return $ LispSymbol "t"
               else return $ LispSymbol "nil"
                   where isAtom (LispList list) = null list
                         isAtom  _ = True
