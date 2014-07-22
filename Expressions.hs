@@ -12,7 +12,7 @@ data LispExpr =  Blank |
 	         LispSpecial LispResult FunctionSignature |
 	         LispFunc LispResult FunctionName FunctionSignature |
 	         LispList [LispExpr] 
-	   
+   
 type FunctionName = String    
 type FunctionSignature = [String]
 type SymbolTable = Map.Map String LispExpr
@@ -44,3 +44,9 @@ instance Show LispExpr where
 	show (LispFunc _ name _) = "<function "  ++ (show name) ++ ">" 
 	show (LispSpecial _ _) = "<special-form>"
 	show (LispList x) = "(" ++ unwords (map show x) ++ ")"
+
+instance Eq LispExpr where
+    (LispInt a) == (LispInt b) = a == b
+    (LispSymbol a) == (LispSymbol b) = a == b
+    (LispList a) == (LispList b) = a == b
+    _ == _ = False

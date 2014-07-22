@@ -14,8 +14,11 @@ lispBinary op args = do return $ foldl1 (lispBinaryAux op) args
 	where lispBinaryAux op (LispInt i) (LispInt j) = LispInt (i `op` j)
 
 -- Equality
-lispEq = do (LispList args) <- getSymbol "..."
-            return $ foldl1 isEqual args
+lispEq = do (LispList args) <- getSymbol "..."  
+            action args
+            where action args
+                      | length args /= 2 = throwError "Invalid number of arguments"
+                      | otherwise = return $ foldl1 isEqual args
 
 isEqual :: LispExpr -> LispExpr -> LispExpr
 isEqual (LispSymbol a) (LispSymbol b) = LispSymbol(if a == b then "t" else "nil")
@@ -24,24 +27,46 @@ isEqual (LispList a) (LispList b) = LispSymbol(if (null a) && (null b) then "t" 
 isEqual _ _ = LispSymbol "nil"
 
 -- Quoting
-singleArg = ["value"]
-lispQuote = getSymbol "value"
+lispQuote = do (LispList arg) <- getSymbol "..."  
+               action arg
+                   where action arg
+                             | length arg /= 1 = throwError "Invalid number of arguments"
+                             | otherwise = return $ head arg
+        
+lispAtom = do (LispList arg) <- getSymbol "..."  
+              action arg
+                  where action arg
+                            | length arg /= 1 = throwError "Invalid number of arguments"
+                            | isAtom $ head arg = return $ LispSymbol "t"
+                            | otherwise = return $ LispSymbol "nil"
 
-lispAtomArgs = ["value"]
-lispAtom = do [expr] <- getSymbols lispAtomArgs
-              
-              if(isAtom expr) then return $ LispSymbol "t"
-              else return $ LispSymbol "nil"
-                  where isAtom (LispList list) = null list
-                        isAtom  _ = True
+isAtom :: LispExpr -> Bool
+isAtom (LispList list) = null list
+isAtom _ = True
 
-lispCar = do expr <- getSymbol "..."
-             eval_e <- eval expr
-             if(isAtom eval_e) then return $ LispSymbol "t" --throwError "bad"
-             else return $ LispSymbol "nil"
-                 where isAtom (LispList list) = null list
-                       isAtom  _ = True
+lispCar = do (LispList list) <- getSymbol "..."  
+             action list
+                 where action arg
+                           | length arg /= 1 = throwError "Invalid number of arguments"
+                           | head arg == (LispList []) = return $ (LispSymbol "nil")
+                           | isAtom $ head arg = throwError "Argument is not of type list" 
+                           | otherwise = return $ car $ head arg
 
+lispCdr = do (LispList list) <- getSymbol "..."  
+             action list
+                 where action arg
+                           | length arg /= 1 = throwError "Invalid number of arguments"
+                           | head arg == (LispList []) = return $ (LispSymbol "nil")
+                           | isAtom $ head arg = throwError "Argument is not of type list" 
+                           | otherwise = return $ cdr $ head arg
+
+car :: LispExpr -> LispExpr
+car (LispList list) = head list
+car _ = (LispSymbol "nil")
+
+cdr :: LispExpr -> LispExpr
+cdr (LispList list) = sequence (tail list)
+cdr _ = (LispSymbol "nil")
 
 -- Set modifies context, adds variable
 lispSetArgs = ["symbol", "value"]
@@ -71,8 +96,8 @@ initialCtx = Ctx (Map.fromList
                          [
                           ("t", LispSymbol "t"),
                           ("nil", LispSymbol "nil"),
-			  ("quote", LispSpecial lispQuote singleArg),
-			  ("atom", LispFunc lispAtom "atom" lispAtomArgs), 
+			  ("quote", LispSpecial lispQuote ["..."]),
+			  ("atom", LispFunc lispAtom "atom" ["..."]), 
 			  ("eq", LispFunc lispEq "eq" ["..."]),
 			  ("car", LispFunc lispCar "car" ["..."]),
 			  ("+", LispFunc (lispArithmetic (+)) "+" ["..."]),
