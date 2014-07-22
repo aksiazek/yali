@@ -44,6 +44,10 @@ isAtom :: LispExpr -> Bool
 isAtom (LispList list) = null list
 isAtom _ = True
 
+isList :: LispExpr -> Bool
+isList (LispList list) = True
+isList _ = False
+
 lispCar = do (LispList list) <- getSymbol "..."  
              action list
                  where action arg
@@ -67,6 +71,17 @@ car _ = (LispSymbol "nil")
 cdr :: LispExpr -> LispExpr
 cdr (LispList list) = (LispList (tail list))
 cdr _ = (LispSymbol "nil")
+
+lispCons = do (LispList args) <- getSymbol "..."  
+              action args
+                  where action args
+                            | length args /= 2 = throwError "Invalid number of arguments"
+                            | not $ isList $ head $ tail args = throwError "Second arg required to be a list"
+                            | otherwise = return $ splice (head args) (head $ tail args)  
+
+splice :: LispExpr -> LispExpr -> LispExpr
+splice elem (LispList list) = (LispList (elem:list))
+splice _ _ = (LispSymbol "nil")
 
 -- Set modifies context, adds variable
 lispSetArgs = ["symbol", "value"]
@@ -109,6 +124,7 @@ initialCtx = Ctx (Map.fromList
 			  ("eq", LispFunc lispEq "eq" ["..."]),
 			  ("car", LispFunc lispCar "car" ["..."]),
 			  ("cdr", LispFunc lispCdr "cdr" ["..."]),
+                          ("cons", LispFunc lispCons "cons" ["..."]),
 			  ("+", LispFunc (lispArithmetic (+)) "+" ["..."]),
 			  ("-", LispFunc (lispArithmetic (-)) "-" ["..."]),
 			  ("*", LispFunc (lispArithmetic (*)) "*" ["..."]),
