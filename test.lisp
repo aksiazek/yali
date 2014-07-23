@@ -1,4 +1,4 @@
-(setq factorial (lambda (n) (if (eq n 0) 1 (* (factorial (- n 1)) n))))
+(defun factorial (n) (if (eq n 0) 1 (* (factorial (- n 1)) n)))
 (factorial 5)
 
 (quote a)
@@ -26,3 +26,5 @@
 (cons (quote a) (cons (quote b) (cons (quote c) (quote ()))) )
 (car (cons (quote a) (quote (b c))))
 (cdr (cons (quote a) (quote (b c))))
+
+(defun null (x) (eq x nil))

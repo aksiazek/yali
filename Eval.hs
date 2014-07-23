@@ -21,6 +21,7 @@ eval (LispSymbol s) = do context <- get
                      Nothing -> throwError ("Symbol " ++ s ++ " is unbound.")
                      (Just parent) -> lookupSymbol parent
               
+eval (LispList []) = return (LispList [])
 eval (LispList (x:xs)) = do fn <- eval x
 	                    apply fn
 	where apply (LispSpecial f expectedArgs) = apply' expectedArgs xs f
