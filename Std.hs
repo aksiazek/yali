@@ -8,6 +8,7 @@ import Control.Monad.Error
 
 true = "t"
 false = "nil"
+nothing = "nil"
 
 -- Helper functions
 getSymbol sym = eval $ (LispSymbol sym)
@@ -28,12 +29,8 @@ lispAtom = do (LispList arg) <- getSymbol "..."
                             | otherwise = return $ LispSymbol false
 
 isAtom :: LispExpr -> Bool
-isAtom (LispList list) = null list
+isAtom (LispList list) = False
 isAtom _ = True
-
-isList :: LispExpr -> Bool
-isList (LispList list) = True
-isList _ = False
 
 lispEq = do (LispList args) <- getSymbol "..."  
             action args
@@ -51,7 +48,7 @@ lispCar = do (LispList list) <- getSymbol "..."
              action list
                  where action arg
                            | length arg /= 1 = throwError "Invalid number of arguments"
-                           | head arg == (LispList []) = return $ (LispSymbol false)
+                           | head arg == (LispList []) = return $ (LispSymbol nothing)
                            | isAtom $ head arg = throwError "Argument is not of type list" 
                            | otherwise = return $ car $ head arg
 
@@ -59,35 +56,55 @@ lispCdr = do (LispList list) <- getSymbol "..."
              action list
                  where action arg
                            | length arg /= 1 = throwError "Invalid number of arguments"
-                           | head arg == (LispList []) = return $ (LispSymbol false)
+                           | head arg == (LispList []) = return $ head arg
                            | isAtom $ head arg = throwError "Argument is not of type list" 
                            | otherwise = return $ cdr $ head arg
 
 car :: LispExpr -> LispExpr
 car (LispList list) = head list
-car _ = (LispSymbol false)
+car _ = (LispSymbol nothing)
 
 cdr :: LispExpr -> LispExpr
 cdr (LispList list) = (LispList (tail list))
-cdr _ = (LispSymbol false)
+cdr _ = (LispSymbol nothing)
 
+notNothing :: LispExpr -> Bool
+notNothing = (/= (LispSymbol nothing))
+            
 lispCons = do (LispList args) <- getSymbol "..."  
               action args
                   where action args
                             | length args /= 2 = throwError "Invalid number of arguments"
-                            | not $ isList $ head $ tail args = throwError "Second arg required to be a list"
-                            | otherwise = return $ splice (head args) (head $ tail args)  
+                            | (isAtom $ last args) && (notNothing $ last args)
+                                = throwError "Cannot construct list"
+                            | otherwise = return $ splice (head args) (last args)  
 
 splice :: LispExpr -> LispExpr -> LispExpr
+splice elem (LispSymbol nothing) = (LispList [elem])
 splice elem (LispList list) = (LispList (elem:list))
 splice _ _ = (LispSymbol false)
 
 lispCond = do (LispList args) <- getSymbol "..."  
               cond args
               where cond args
-                         | null args = return $ (LispSymbol false)
-                         | isAtom $ head args = throwError "cond clause is not a list"
-                         | otherwise = return $ head args
+                         | null args = return $ (LispSymbol nothing)
+                         | isAtom $ head args = throwError "cond clause is not a list"        
+                         | notTwoElementList $ head args = throwError "clause has not two arguments"
+                         | otherwise = do 
+                      eval_expr <- eval $ car $ head args
+                      if (not $ isBool $ eval_expr) then throwError $ "first form in a clause does not evaluate to " ++ true ++ " or " ++ false 
+                      else if (eval_expr == (LispSymbol true)) 
+                           then eval $ car $ cdr $ head args
+                           else cond $ tail args
+
+isBool :: LispExpr -> Bool
+isBool (LispSymbol sym) = if(sym == true || sym == false) then True
+                          else False
+isBool _ = False 
+
+notTwoElementList :: LispExpr -> Bool
+notTwoElementList (LispList list) = length list /= 2
+notTwoElementList _ =  False
 
 -- Lambda function creation
 lispLambdaArgs = ["args", "..."]
