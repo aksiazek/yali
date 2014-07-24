@@ -49,6 +49,7 @@ Helpers
 (cadr (quote ((a b) (c d) e)))
 (defun caddr (e) (car (cdr (cdr e))))
 (defun cadar (e) (car (cdr (car e))))
+(defun caddar (e) (car (cdr (cdr (car e)))))
 (defun and (x y) (cond (x (cond (y t) (t nil))) (t nil)))
 (and (atom (quote a)) (eq (quote a) (quote a)))
 (and (atom (quote a)) (eq (quote a) (quote b)))
@@ -78,4 +79,6 @@ Grand test
 (eval (quote (cons x (quote (b c)))) (quote ((x a) (y b))))
 (eval (quote (cond ((atom x) (quote atom)) (t (quote list)) ))    (quote ((x (quote (a b)) ))) )
 
+(eval (quote (f (quote (b c)))) (quote ((f (lambda (x) (cons (quote a) x))))))
+(eval (quote ((lambda (x) (cons (quote a) x)) (quote (b c)))) (quote ((f (lambda (x) (cons (quote a) x))))))
 
