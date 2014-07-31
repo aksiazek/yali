@@ -21,7 +21,7 @@ repl = do
 	 expr <- parse x 
          evaledExpr <- eval expr
          case (show evaledExpr) of
-           "" -> liftIO (putStr $ show evaledExpr)
+           "" -> liftIO (putStrLn $ show evaledExpr)
 	   _ -> liftIO $ print evaledExpr
 	 repl
          `catchError` (\e -> do liftIO $ putStrLn e
