@@ -98,5 +98,5 @@
 (eval (quote (f (quote (b c)))) (quote ((f (lambda (x) (cons (quote a) x))))))
 (eval (quote ((lambda (x) (cons (quote a) x)) (quote (b c)))) (quote ((f (lambda (x) (cons (quote a) x))))))
 
-; fix spaces bug (lambda(x)x) <=> (lambda (x) x)
+; fixed spaces bug (lambda(x)x) <=> (lambda (x) x)
 ; fix newline issue

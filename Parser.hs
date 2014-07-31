@@ -22,7 +22,6 @@ parseExprNoBlanks = try parseInteger
                     <|> try parseSymbol
                     <|> try parseList
                                 
-
 parseBlank = do comment <- option "" (string ";")
                 when (comment == ";") $ do
                   skipMany anyToken
@@ -40,10 +39,9 @@ parseSymbol = do f <- firstAllowed
 
 parseList = do char '('
                spaces
-	       x <- parseExprNoBlanks `sepEndBy` (many1 space)
+	       x <- parseExprNoBlanks `sepEndBy` spaces   
                char ')'
 	       return $ LispList x
-
 
 
 
