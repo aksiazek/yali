@@ -16,19 +16,17 @@ parseAll = do spaces
 	      spaces
 	      return x
 
-parseExpr = try parseInteger
-            <|> try parseSymbol
-            <|> try parseList
-            <|> parseBlank
+parseExpr = parseExprNoBlanks <|> parseBlank
             
 parseExprNoBlanks = try parseInteger
                     <|> try parseSymbol
                     <|> try parseList
                                 
+
 parseBlank = do comment <- option "" (string ";")
                 when (comment == ";") $ do
                   skipMany anyToken
-                spaces
+                notFollowedBy anyToken
                 return Blank
 
 parseInteger = do sign <- option "" (string "-")

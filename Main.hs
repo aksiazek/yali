@@ -1,13 +1,12 @@
 module Main where
 
-import Expressions
-import Parser
-import Eval
+import Expressions (Context,LispError)
+import Parser (parse)
+import Eval (eval)
 import Std (initialCtx)
 import System.IO
 import System.IO.Error
 import Control.Exception
-import Control.Monad
 import Control.Monad.State
 import Control.Monad.Error
 

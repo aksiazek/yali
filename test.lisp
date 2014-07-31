@@ -37,7 +37,6 @@
 
 ;; clojure approach taken
 
-
 ;; interesting clojure vs common lisp cond
 ; (cond (quote ()) '(nil))
 
@@ -99,3 +98,5 @@
 (eval (quote (f (quote (b c)))) (quote ((f (lambda (x) (cons (quote a) x))))))
 (eval (quote ((lambda (x) (cons (quote a) x)) (quote (b c)))) (quote ((f (lambda (x) (cons (quote a) x))))))
 
+; fix spaces bug (lambda(x)x) <=> (lambda (x) x)
+; fix newline issue
