@@ -17,14 +17,14 @@ repl = do
   liftIO $ putStr "lisp> "
   liftIO $ hFlush stdout
   x <- liftIO $ getLine `catch` eofHandler
-  when (x /= "(quit)") $ do
-	 expr <- parse x 
-         evaledExpr <- eval expr
-         case (show evaledExpr) of
-           "" -> liftIO (putStrLn $ show evaledExpr)
-	   _ -> liftIO $ print evaledExpr
-	 repl
-         `catchError` (\e -> do liftIO $ putStrLn e
-                                repl)
+  if (x /= "(quit)") then do
+	               expr <- parse x 
+                       evaledExpr <- eval expr
+                       liftIO $ print evaledExpr
+	               repl
+                       `catchError` (\e -> do liftIO $ putStrLn e
+                                              repl)
+  else do liftIO $ putStrLn ""
+          return ()
 
 eofHandler e = if isEOFError e then return "(quit)" else ioError e
