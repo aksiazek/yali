@@ -14,7 +14,6 @@ parse source = case (Text.Parsec.parse parseAll "" source) of
 parseAll = do spaces
               x <- parseExpr
 	      spaces
-              eof
 	      return x
 
 parseExpr = try parseInteger
@@ -26,7 +25,10 @@ parseExprNoBlanks = try parseInteger
                     <|> try parseSymbol
                     <|> try parseList
                                 
-parseBlank = do spaces
+parseBlank = do comment <- option "" (string ";")
+                when (comment == ";") $ do
+                  skipMany anyToken
+                spaces
                 return Blank
 
 parseInteger = do sign <- option "" (string "-")
@@ -36,7 +38,7 @@ parseInteger = do sign <- option "" (string "-")
 parseSymbol = do f <- firstAllowed
 		 r <- many $ firstAllowed <|> digit
 		 return $ LispSymbol (f:r)
-	where firstAllowed = oneOf "+-*/!@#$%^&=[]{};:<>,.?\\|~`'\"" <|> letter
+	where firstAllowed = oneOf "+-*/!@#$%^&=[]{}:<>,.?\\|~`'\"" <|> letter
 
 parseList = do char '('
                spaces

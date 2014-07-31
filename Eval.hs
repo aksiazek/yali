@@ -22,13 +22,11 @@ eval (LispSymbol s) = do context <- get
                      (Just parent) -> lookupSymbol parent
               
 eval (LispList []) = return (LispList [])
-eval (LispList (x:xs)) = do fn <- eval x
-	                    apply fn
+eval (LispList (x:xs)) = eval x >>= (\fn -> apply fn)
 	where apply (LispSpecial f expectedArgs) = apply' expectedArgs xs f
 	      apply (LispLambda f expectedArgs) = do args <- mapM eval xs
                                                      apply' expectedArgs args f
-	      apply (LispFunc f _ expectedArgs) = do args <- mapM eval xs
-                                                     apply' expectedArgs args f
+	      apply (LispFunc f _ expectedArgs) = apply (LispLambda f expectedArgs)
               apply _ = throwError "Illegal function call"
               apply' expectedArgs args f = do modify pushContext
                                               applyArgsToContext expectedArgs args

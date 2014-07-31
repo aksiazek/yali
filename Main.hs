@@ -1,22 +1,23 @@
 module Main where
 
-import Expressions -- for testing
+import Expressions
 import Parser
 import Eval
-import Std --(initialCtx)
+import Std (initialCtx)
 import System.IO
-import Control.Applicative
+import System.IO.Error
+import Control.Exception
 import Control.Monad
 import Control.Monad.State
 import Control.Monad.Error
 
-main = do runErrorT (evalStateT repl initialCtx)
-          return ()
+main = runErrorT (evalStateT repl initialCtx)
 
+repl :: StateT Context LispError ()
 repl = do 
   liftIO $ putStr "lisp> "
   liftIO $ hFlush stdout
-  x <- liftIO getLine
+  x <- liftIO $ getLine `catch` eofHandler
   when (x /= "(quit)") $ do
 	 expr <- parse x 
          evaledExpr <- eval expr
@@ -26,3 +27,5 @@ repl = do
 	 repl
          `catchError` (\e -> do liftIO $ putStrLn e
                                 repl)
+
+eofHandler e = if isEOFError e then return "(quit)" else ioError e

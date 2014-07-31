@@ -13,23 +13,24 @@ data LispExpr =  Blank |
 	         LispFunc LispResult FunctionName FunctionSignature |
 	         LispList [LispExpr] 
    
-type FunctionName = String    
+type FunctionName = String
 type FunctionSignature = [String]
 type SymbolTable = Map.Map String LispExpr
 
 -- Context (scope) in which expressions are be evaluated
 data Context = Ctx { contextSymbols :: SymbolTable, parentContext :: (Maybe Context) }
 
--- Error monad with String error type and IO inner monad
+-- IO Monad + error handling in String form, IO is the inner monad
 type LispError = ErrorT String IO
 -- State monad holds a context as the state, the error monad as an inner monad and an evaluation result
 type LispResult = StateT Context LispError LispExpr
 
--- Helper context functions
-updateSymbol s eval_e = modify (\(Ctx sym_table parentCtx)->(Ctx (Map.insert s eval_e sym_table)) parentCtx)
+-- Helper functions for context manipulation
+updateSymbol symbol value = modify (\(Ctx sym_table parentCtx) -> (Ctx (Map.insert symbol value sym_table)) parentCtx)
 
-updateSymbolInParent s eval_e = modify (\(Ctx sym_table parent_ctx)->(Ctx sym_table (updatedCtx parent_ctx)))
-    where updatedCtx (Just (Ctx sym_table ctx)) = (Just (Ctx (Map.insert s eval_e sym_table) ctx))
+updateSymbolInParent symbol value = modify (\(Ctx sym_table parent_ctx)->(Ctx sym_table (updatedCtx parent_ctx)))
+    where updatedCtx (Just (Ctx sym_table ctx)) = (Just (Ctx (Map.insert symbol value sym_table) ctx))
+          updatedCtx Nothing = Nothing
     
 pushContext ctx = Ctx Map.empty (Just ctx)
 popContext ctx@(Ctx _ Nothing) = ctx
