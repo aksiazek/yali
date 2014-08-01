@@ -125,6 +125,7 @@
 (test-args)
 (test-args (quote a))
 (test-args (quote a) (quote b))
+(defun bad-function (&rest) t)
 
 ; not implemented in eval
 ; (eval (quote (+ n 1)) (quote ((n 2) (y 2))))
@@ -136,9 +137,10 @@
 ; fixed spaces bug (lambda(x)x) <=> (lambda (x) x)
 ; fixed newline issues
 ; eval definition changed to evaluate defun, not label lambda
-; arg checking, ... -> proper &rest args
+; arg number checking
 
-; STD code refactor
+; ... -> proper &rest args, partial, errors thrown in eval not defintion
+; STD code refactor, partial
 
 ; < operators + gcd on fibonacci numbers test 
 ; ' quotation sugar
@@ -149,4 +151,4 @@
 ; multiline support
 ; multiline comments
 
-
+;; funny (defun &rest (&rest &rest) &rest)

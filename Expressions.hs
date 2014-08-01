@@ -43,11 +43,11 @@ instance Show LispExpr where
 	show (LispSymbol x) = x
 	show (LispLambda _ sig) = "<lambda (" ++ (unwords sig) ++ ")>"
 	show (LispFunc _ name sig) = "<function "  ++ (show name) ++ " (" ++ (unwords sig) ++ ")>" 
-	show (LispSpecial _ _) = "<special-form>"
+	show (LispSpecial _ sig) = "<special-form (" ++ (unwords sig) ++ ")>"
 	show (LispList x) = "(" ++ unwords (map show x) ++ ")"
 
 instance Eq LispExpr where
     (LispInt a) == (LispInt b) = a == b
     (LispSymbol a) == (LispSymbol b) = a == b
-    (LispList a) == (LispList b) = a == b
+    (LispList []) == (LispList []) = True
     _ == _ = False

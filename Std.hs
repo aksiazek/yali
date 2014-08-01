@@ -15,46 +15,37 @@ getSymbol sym = eval $ LispSymbol sym
 getSymbols syms = mapM getSymbol syms
 
 -- Primitives
-lispQuote = getSymbol "arg" >>= return
+lispQuote = getSymbol "thing" >>= return
 
-lispAtom = do (LispList arg) <- getSymbol "..."  
-              action arg
-                  where action arg
-                            | length arg /= 1 = throwError "Invalid number of arguments"
-                            | isAtom $ head arg = return $ LispSymbol true
-                            | otherwise = return $ LispSymbol false
+lispAtom = do arg <- getSymbol "object"  
+              return $ LispSymbol (if isAtom arg then true else false)
 
 isAtom :: LispExpr -> Bool
 isAtom (LispList _) = False
 isAtom _ = True
 
-lispEq = do (LispList args) <- getSymbol "..."  
-            action args
-            where action args
-                      | length args /= 2 = throwError "Invalid number of arguments"
-                      | otherwise = return $ foldl1 isEqual args
+lispEqArgs = ["expr1","expr2"]
+lispEq = do [expr1,expr2] <- getSymbols lispEqArgs
+            return $ isEqual expr1 expr2
 
 isEqual :: LispExpr -> LispExpr -> LispExpr
-isEqual (LispSymbol a) (LispSymbol b) = LispSymbol(if a == b then true else false)
-isEqual (LispInt a) (LispInt b) = LispSymbol(if a == b then true else false)
-isEqual (LispList a) (LispList b) = LispSymbol(if (null a) && (null b) then true else false)
-isEqual _ _ = LispSymbol false
+isEqual a b
+    | a == b = LispSymbol true
+    | otherwise = LispSymbol false
 
-lispCar = do (LispList list) <- getSymbol "..."  
+lispCar = do list <- getSymbol "list"  
              action list
                  where action arg
-                           | length arg /= 1 = throwError "Invalid number of arguments"
-                           | head arg == (LispList []) = return $ (LispSymbol nothing)
-                           | isAtom $ head arg = throwError "Argument is not of type list" 
-                           | otherwise = return $ car $ head arg
+                           | arg == (LispList []) = return $ (LispSymbol nothing)
+                           | isAtom $ arg = throwError "Argument is not of type list" 
+                           | otherwise = return $ car arg
 
-lispCdr = do (LispList list) <- getSymbol "..."  
+lispCdr = do list <- getSymbol "list"  
              action list
                  where action arg
-                           | length arg /= 1 = throwError "Invalid number of arguments"
-                           | head arg == (LispList []) = return $ head arg
-                           | isAtom $ head arg = throwError "Argument is not of type list" 
-                           | otherwise = return $ cdr $ head arg
+                           | arg == (LispList []) = return $ arg
+                           | isAtom arg = throwError "Argument is not of type list" 
+                           | otherwise = return $ cdr arg
 
 car :: LispExpr -> LispExpr
 car (LispList list) = head list
@@ -67,20 +58,20 @@ cdr _ = (LispSymbol nothing)
 notNothing :: LispExpr -> Bool
 notNothing = (/= (LispSymbol nothing))
             
-lispCons = do (LispList args) <- getSymbol "..."  
-              action args
-                  where action args
-                            | length args /= 2 = throwError "Invalid number of arguments"
-                            | (isAtom $ last args) && (notNothing $ last args)
+lispConsArgs = ["expr1","expr2"]
+lispCons = do [expr1,expr2] <- getSymbols lispConsArgs 
+              action expr1 expr2
+                  where action expr1 expr2
+                            | (isAtom $ expr2) && (notNothing $ expr2)
                                 = throwError "Cannot construct list"
-                            | otherwise = return $ splice (head args) (last args)  
+                            | otherwise = return $ splice expr1 expr2  
 
 splice :: LispExpr -> LispExpr -> LispExpr
 splice elem (LispSymbol nothing) = (LispList [elem])
 splice elem (LispList list) = (LispList (elem:list))
 splice _ _ = (LispSymbol false)
 
-lispCond = do (LispList args) <- getSymbol "..."  
+lispCond = do (LispList args) <- getSymbol "clauses"  
               cond args
               where cond args
                          | null args = return $ (LispSymbol nothing)
@@ -104,7 +95,7 @@ notTwoElementList _ =  False
 
 -- function creation
 lispLambdaArgs = ["args", "&rest", "body"]
-lispLambda = do [(LispList args), _, (LispList body)] <- getSymbols ["args", "body"]
+lispLambda = do [(LispList args), (LispList body)] <- getSymbols ["args", "body"]
                 let newFn = do evalBody <- mapM eval body
                                return $ last evalBody
                 return $ LispLambda newFn (map show args)
@@ -113,10 +104,9 @@ lispFunArgs = ["name", "args", "&rest", "body"]
 lispFun = do [(LispSymbol name), (LispList args), (LispList body)] <- getSymbols  ["name", "args", "body"]
              let newFn = do evalBody <- mapM eval body
                             return $ last evalBody
-             let lambda = LispFunc newFn name (map show args)
+                 lambda = LispFunc newFn name (map show args)
              updateSymbolInParent name lambda
              return lambda
-
 
 -- Special form setq
 lispSetArgs = ["symbol", "value"]
@@ -133,7 +123,7 @@ lispIf = do [condExpr, expr1, expr2] <- getSymbols lispIfArgs
                                         else eval expr2
     where notNil (LispSymbol val) = false /= val
 
-lispArithmetic f  = do (LispList args) <- getSymbol "..."
+lispArithmetic f  = do (LispList args) <- getSymbol "args"
                        lispBinary f args
 
 lispBinary :: (Integer->Integer->Integer) -> [LispExpr] -> LispResult
@@ -147,20 +137,20 @@ initialCtx = Ctx (Map.fromList
                           (true, LispSymbol true),
                           (false, LispSymbol false),
 			  ("()", LispSymbol "()"),
-			  ("quote", LispSpecial lispQuote ["arg"]),
-			  ("atom", LispFunc lispAtom "atom" ["&rest", "..."]), 
-			  ("eq", LispFunc lispEq "eq" ["&rest", "..."]),
-			  ("car", LispFunc lispCar "car" ["&rest", "..."]),
-			  ("cdr", LispFunc lispCdr "cdr" ["&rest", "..."]),
-                          ("cons", LispFunc lispCons "cons" ["&rest", "..."]),
-			  ("cond", LispSpecial lispCond ["&rest", "..."]),
+			  ("quote", LispSpecial lispQuote ["thing"]),
+			  ("atom", LispFunc lispAtom "atom" ["object"]), 
+			  ("eq", LispFunc lispEq "eq" lispEqArgs),
+			  ("car", LispFunc lispCar "car" ["list"]),
+			  ("cdr", LispFunc lispCdr "cdr" ["list"]),
+                          ("cons", LispFunc lispCons "cons" ["expr1", "expr2"]),
+			  ("cond", LispSpecial lispCond ["&rest", "clauses"]),
 			  ("lambda", LispSpecial lispLambda lispLambdaArgs),
                           ("defun", LispSpecial lispFun lispFunArgs),
                           ("setq", LispSpecial lispSet lispSetArgs),
-                          ("+", LispFunc (lispArithmetic (+)) "+" ["&rest", "..."]),
-			  ("-", LispFunc (lispArithmetic (-)) "-" ["&rest", "..."]),
-			  ("*", LispFunc (lispArithmetic (*)) "*" ["&rest", "..."]),
-			  ("/", LispFunc (lispArithmetic div) "/" ["&rest", "..."]),
+                          ("+", LispFunc (lispArithmetic (+)) "+" ["&rest", "args"]),
+			  ("-", LispFunc (lispArithmetic (-)) "-" ["&rest", "args"]),
+			  ("*", LispFunc (lispArithmetic (*)) "*" ["&rest", "args"]),
+			  ("/", LispFunc (lispArithmetic div) "/" ["&rest", "args"]),
 			  ("if", LispSpecial lispIf lispIfArgs) --redundant
                          ]) Nothing
 
