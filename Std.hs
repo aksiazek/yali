@@ -15,12 +15,8 @@ getSymbol sym = eval $ LispSymbol sym
 getSymbols syms = mapM getSymbol syms
 
 -- Primitives
-lispQuote = do (LispList arg) <- getSymbol "..."  
-               action arg
-                   where action arg
-                             | length arg /= 1 = throwError "Invalid number of arguments"
-                             | otherwise = return $ head arg
-        
+lispQuote = getSymbol "arg" >>= return
+
 lispAtom = do (LispList arg) <- getSymbol "..."  
               action arg
                   where action arg
@@ -107,14 +103,14 @@ notTwoElementList (LispList list) = length list /= 2
 notTwoElementList _ =  False
 
 -- function creation
-lispLambdaArgs = ["args", "..."]
-lispLambda = do [(LispList args), (LispList body)] <- getSymbols lispLambdaArgs
+lispLambdaArgs = ["args", "&rest", "body"]
+lispLambda = do [(LispList args), _, (LispList body)] <- getSymbols ["args", "body"]
                 let newFn = do evalBody <- mapM eval body
                                return $ last evalBody
                 return $ LispLambda newFn (map show args)
 
-lispFunArgs = ["name", "args", "..."]
-lispFun = do [(LispSymbol name), (LispList args), (LispList body)] <- getSymbols lispFunArgs
+lispFunArgs = ["name", "args", "&rest", "body"]
+lispFun = do [(LispSymbol name), (LispList args), (LispList body)] <- getSymbols  ["name", "args", "body"]
              let newFn = do evalBody <- mapM eval body
                             return $ last evalBody
              let lambda = LispFunc newFn name (map show args)
@@ -151,20 +147,20 @@ initialCtx = Ctx (Map.fromList
                           (true, LispSymbol true),
                           (false, LispSymbol false),
 			  ("()", LispSymbol "()"),
-			  ("quote", LispSpecial lispQuote ["..."]),
-			  ("atom", LispFunc lispAtom "atom" ["..."]), 
-			  ("eq", LispFunc lispEq "eq" ["..."]),
-			  ("car", LispFunc lispCar "car" ["..."]),
-			  ("cdr", LispFunc lispCdr "cdr" ["..."]),
-                          ("cons", LispFunc lispCons "cons" ["..."]),
-			  ("cond", LispSpecial lispCond ["..."]),
+			  ("quote", LispSpecial lispQuote ["arg"]),
+			  ("atom", LispFunc lispAtom "atom" ["&rest", "..."]), 
+			  ("eq", LispFunc lispEq "eq" ["&rest", "..."]),
+			  ("car", LispFunc lispCar "car" ["&rest", "..."]),
+			  ("cdr", LispFunc lispCdr "cdr" ["&rest", "..."]),
+                          ("cons", LispFunc lispCons "cons" ["&rest", "..."]),
+			  ("cond", LispSpecial lispCond ["&rest", "..."]),
 			  ("lambda", LispSpecial lispLambda lispLambdaArgs),
                           ("defun", LispSpecial lispFun lispFunArgs),
                           ("setq", LispSpecial lispSet lispSetArgs),
-                          ("+", LispFunc (lispArithmetic (+)) "+" ["..."]),
-			  ("-", LispFunc (lispArithmetic (-)) "-" ["..."]),
-			  ("*", LispFunc (lispArithmetic (*)) "*" ["..."]),
-			  ("/", LispFunc (lispArithmetic div) "/" ["..."]),
+                          ("+", LispFunc (lispArithmetic (+)) "+" ["&rest", "..."]),
+			  ("-", LispFunc (lispArithmetic (-)) "-" ["&rest", "..."]),
+			  ("*", LispFunc (lispArithmetic (*)) "*" ["&rest", "..."]),
+			  ("/", LispFunc (lispArithmetic div) "/" ["&rest", "..."]),
 			  ("if", LispSpecial lispIf lispIfArgs) --redundant
                          ]) Nothing
 

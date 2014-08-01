@@ -33,7 +33,10 @@ eval (LispList (x:xs)) = eval x >>= apply
                                               result <- f
                                               modify popContext
                                               return result
-              applyArgsToContext ("...":_) args = do updateSymbol "..." (LispList args)
+              applyArgsToContext ("&rest":[]) args = throwError "&rest without rest variable"
+              applyArgsToContext ("&rest":restArg:[]) args = do updateSymbol restArg (LispList args)
+              applyArgsToContext ("&rest":_:garbage) args = throwError $ "found garbage in lambda list" ++ (show garbage) 
               applyArgsToContext (earg:expectedArgs) (arg:args) = do updateSymbol earg arg
                                                                      applyArgsToContext expectedArgs args
-              applyArgsToContext _ _ = return ()
+              applyArgsToContext [] [] = return ()
+              applyArgsToContext _ _ = throwError "Invalid number of arguments"

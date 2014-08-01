@@ -69,7 +69,7 @@
 (append (quote (a b)) (quote (c d)))
 (append () (quote (c d)))
 
-(defun list (...) ...) ;; &rest arguments
+(defun list (&rest args) args)
 
 ;; assoc modified to return nil uppon failure of finding binding
 ; (defun assoc (x y) (cond ((eq (caar y) x) (cadar y)) ((not (null (cdr y))) (assoc x (cdr y)))))
@@ -96,32 +96,8 @@
 ; (defun eval (e a) (cond ((atom e) (assoc e a)) ((atom (car e)) (cond ((eq (car e) (quote quote)) (cadr e)) ((eq (car e) (quote atom)) (atom (eval (cadr e) a))) ((eq (car e) (quote eq)) (eq (eval (cadr e) a) (eval (caddr e) a))) ((eq (car e) (quote car)) (car (eval (cadr e) a))) ((eq (car e) (quote car)) (car (eval (cadr e) a))) ((eq (car e) (quote cdr)) (cdr (eval (cadr e) a))) ((eq (car e) (quote cons)) (cons (eval (cadr e) a) (eval (caddr e) a))) ((eq (car e) (quote cond)) (evcon (cdr e) a)) (t (eval (cons (assoc (car e) a) (cdr e)) a)))) ((eq (caar e) (quote label)) (eval (cons (caddar e) (cdr e)) (cons (list (cadar e) (car e)) a))) ((eq (caar e) (quote lambda)) (eval (caddar e) (append (pair (cadar e) (evlis (cdr e) a)) a)))))
 ;; poprawka
 ;; label eval (defun eval (e a) (cond ((eq e t) t) ((eq e nil) nil) ((atom e) (assoc e a)) ((atom (car e)) (cond ((eq (car e) (quote quote)) (cadr e)) ((eq (car e) (quote atom)) (atom (eval (cadr e) a))) ((eq (car e) (quote eq)) (eq (eval (cadr e) a) (eval (caddr e) a))) ((eq (car e) (quote car)) (car (eval (cadr e) a))) ((eq (car e) (quote car)) (car (eval (cadr e) a))) ((eq (car e) (quote cdr)) (cdr (eval (cadr e) a))) ((eq (car e) (quote cons)) (cons (eval (cadr e) a) (eval (caddr e) a))) ((eq (car e) (quote cond)) (evcon (cdr e) a)) (t (eval (cons (assoc (car e) a) (cdr e)) a)))) ((eq (caar e) (quote label)) (eval (cons (caddar e) (cdr e)) (cons (list (cadar e) (car e)) a))) ((eq (caar e) (quote lambda)) (eval (caddar e) (append (pair (cadar e) (evlis (cdr e) a)) a)))))
-;; new defun eval
-(defun eval (e a) (cond ((eq e t) t) ((eq e nil) nil) ((atom e) (assoc e a)) ((atom (car e)) (cond ((eq (car e) (quote quote)) (cadr e)) ((eq (car e) (quote atom)) (atom (eval (cadr e) a))) ((eq (car e) (quote eq)) (eq (eval (cadr e) a) (eval (caddr e) a))) ((eq (car e) (quote car)) (car (eval (cadr e) a))) ((eq (car e) (quote car)) (car (eval (cadr e) a))) ((eq (car e) (quote cdr)) (cdr (eval (cadr e) a))) ((eq (car e) (quote cons)) (cons (eval (cadr e) a) (eval (caddr e) a))) ((eq (car e) (quote cond)) (evcon (cdr e) a)) (t (eval (cons (assoc (car e) a) (cdr e)) a)))) ((eq (caar e) (quote defun)) (eval (cons (cons (quote lambda) (cddar e)) (cdr e)) (cons (cons (cadar e) (cons (car e) ())) a)))((eq (caar e) (quote lambda)) (eval (caddar e) (append (pair (cadar e) (evlis (cdr e) a)) a)))))
-
-(defun eval (e a) (cond ((eq e t) t) ((eq e nil) nil) ((atom e) (assoc e a)) ((atom (car e)) (cond ((eq (car e) (quote quote)) (cadr e)) ((eq (car e) (quote atom)) (atom (eval (cadr e) a))) ((eq (car e) (quote eq)) (eq (eval (cadr e) a) (eval (caddr e) a))) ((eq (car e) (quote car)) (car (eval (cadr e) a))) ((eq (car e) (quote car)) (car (eval (cadr e) a))) ((eq (car e) (quote cdr)) (cdr (eval (cadr e) a))) ((eq (car e) (quote cons)) (cons (eval (cadr e) a) (eval (caddr e) a))) ((eq (car e) (quote cond)) (evcon (cdr e) a)) (t (eval (cons (assoc (car e) a) (cdr e)) a)))) ((eq (caar e) (quote defun)) (eval (cons (cons (quote lambda) (cddar e)) (cdr e)) (cons (list (cadar e) (car e))  a)))((eq (caar e) (quote lambda)) (eval (caddar e) (append (pair (cadar e) (evlis (cdr e) a)) a)))))
-
-
-;; expanded for devel
-(defun eval (e a) 
-(cond ((eq e t) t) 
-((eq e nil) nil) 
-((atom e) (assoc e a)) 
-((atom (car e)) 
-	(cond 
-		((eq (car e) (quote quote)) (cadr e)) 
-		((eq (car e) (quote atom)) (atom (eval (cadr e) a))) 
-		((eq (car e) (quote eq)) (eq (eval (cadr e) a) (eval (caddr e) a))) 
-		((eq (car e) (quote car)) (car (eval (cadr e) a))) 
-		((eq (car e) (quote car)) (car (eval (cadr e) a))) 
-		((eq (car e) (quote cdr)) (cdr (eval (cadr e) a))) 
-		((eq (car e) (quote cons)) (cons (eval (cadr e) a) (eval (caddr e) a))) 
-		((eq (car e) (quote cond)) (evcon (cdr e) a)) 
-		(t (eval (cons (assoc (car e) a) (cdr e)) a)))) 
-((eq (caar e) (quote defun)) 
-	(eval (cons (cons (quote lambda) (cddar e)) (cdr e)) (cons (list (cadar e) (car e))  a)))
-((eq (caar e) (quote lambda)) (eval (caddar e) (append (pair (cadar e) (evlis (cdr e) a)) a)))))
-
+;; new defun eval with t, nil, () self-eval
+(defun eval (e a) (cond ((eq e t) t) ((eq e nil) nil) ((eq e (quote ())) ())  ((atom e) (assoc e a)) ((atom (car e)) (cond ((eq (car e) (quote quote)) (cadr e)) ((eq (car e) (quote atom)) (atom (eval (cadr e) a))) ((eq (car e) (quote eq)) (eq (eval (cadr e) a) (eval (caddr e) a))) ((eq (car e) (quote car)) (car (eval (cadr e) a))) ((eq (car e) (quote car)) (car (eval (cadr e) a))) ((eq (car e) (quote cdr)) (cdr (eval (cadr e) a))) ((eq (car e) (quote cons)) (cons (eval (cadr e) a) (eval (caddr e) a))) ((eq (car e) (quote cond)) (evcon (cdr e) a)) (t (eval (cons (assoc (car e) a) (cdr e)) a)))) ((eq (caar e) (quote defun)) (eval (cons (cons (quote lambda) (cddar e)) (cdr e)) (cons (list (cadar e) (car e))  a)))((eq (caar e) (quote lambda)) (eval (caddar e) (append (pair (cadar e) (evlis (cdr e) a)) a)))))
 
 (eval t (quote ()))
 (eval nil (quote ((nil t))))
@@ -142,22 +118,26 @@
 (eval (quote (cons x (cdr y))) (quote ((x a) (y (b c d)))))
 (eval (quote ((defun firstatom (x)(cond ((atom x) x) (t (firstatom (car x))))) y))(quote ((y ((a b) (c d))))))
 (eval (quote ((defun test (x) x) y)) (quote ((y a))))
-
-; fail
-(eval (quote (+ n 1)) (quote ((n 2) (y 2))))
 (eval (quote ((lambda (x) (cons x ())) y)) (quote ((y a))))
-(eval (quote ((lambda (x) x) (y))) (quote ((y a))))
-(eval (quote ((lambda (n) (+ n 1)) y)) (quote ((y 2))))
-(eval (quote ((defun test (x) x) (y))) (quote ((y a))))
-(eval (quote ((defun factorial (n) (+ n 1)) y)) (quote ((y 2))))
-(eval (quote ((defun factorial (n) (if (eq n 0) 1 (* (factorial (- n 1)) n))) y)) (quote ((y 1))))
+(eval (quote ((defun test (x) x) (cons y nil))) (quote ((y a))))
 
+(defun test-args (x) x)
+(test-args)
+(test-args (quote a))
+(test-args (quote a) (quote b))
+
+; not implemented in eval
+; (eval (quote (+ n 1)) (quote ((n 2) (y 2))))
+; (eval (quote ((lambda (n) (+ n 1)) y)) (quote ((y 2))))
+; (eval (quote ((defun factorial (n) (+ n 1)) y)) (quote ((y 2))))
+; (eval (quote ((defun factorial (n) (if (eq n 0) 1 (* (factorial (- n 1)) n))) y)) (quote ((y 1))))
+
+; info: parsing () qwbfue passes as first matched expression, as in sbcl
 ; fixed spaces bug (lambda(x)x) <=> (lambda (x) x)
 ; fixed newline issues
 ; eval definition changed to evaluate defun, not label lambda
+; arg checking, ... -> proper &rest args
 
-; eval lambda bug for (eval (quote ((lambda (x) x) (y))) (quote ((y a))))
-; &rest, arg checking
 ; STD code refactor
 
 ; < operators + gcd on fibonacci numbers test 
