@@ -9,6 +9,11 @@ The first milestone, to to be able to write an eval function in itself is comple
 Read the details in Paul Graham's Roots of Lisp, avaiable currently at http://languagelog.ldc.upenn.edu/myl/ldc/llog/jmc.pdf
 
 ==
+#### Language info
+
+YALI is a common lisp clone that deviates visibly only in the handling of nil and the empty list, which are two different things, just like in clojure. The author views that approach as more consistent.
+
+==
 #### Dependencies
 
 You will need Haskell installed on your system. Download:
@@ -18,6 +23,7 @@ You will need Haskell installed on your system. Download:
 or use your package manager like yum, apt or http://chocolatey.org/
 
 You will also benefit a lot from the rlwrap package, a GNU readline command line wrapper, which offers command line history with the familiar up-arrow.
+
 
 ==
 #### Running
