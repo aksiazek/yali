@@ -23,9 +23,10 @@ You will also benefit a lot from the rlwrap package, a GNU readline command line
 #### Running
 
  ```
+ cd src
  ghc Main.hs
  rlwrap ./Main
- rlwrap ./Main < test.lisp > test.out
+ rlwrap ./Main < ../test/test.lisp > ../test/test.out
  ```
 
 ==
