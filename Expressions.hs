@@ -42,7 +42,7 @@ instance Show LispExpr where
 	show (LispInt x) = show x
 	show (LispSymbol x) = x
 	show (LispLambda _ sig) = "<lambda (" ++ (unwords sig) ++ ")>"
-	show (LispFunc _ name _) = "<function "  ++ (show name) ++ ">" 
+	show (LispFunc _ name sig) = "<function "  ++ (show name) ++ " (" ++ (unwords sig) ++ ")>" 
 	show (LispSpecial _ _) = "<special-form>"
 	show (LispList x) = "(" ++ unwords (map show x) ++ ")"
 

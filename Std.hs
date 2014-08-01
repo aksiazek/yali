@@ -11,7 +11,7 @@ false = "nil"
 nothing = "nil"
 
 -- Helper functions
-getSymbol sym = eval $ (LispSymbol sym)
+getSymbol sym = eval $ LispSymbol sym
 getSymbols syms = mapM getSymbol syms
 
 -- Primitives
@@ -29,7 +29,7 @@ lispAtom = do (LispList arg) <- getSymbol "..."
                             | otherwise = return $ LispSymbol false
 
 isAtom :: LispExpr -> Bool
-isAtom (LispList list) = False
+isAtom (LispList _) = False
 isAtom _ = True
 
 lispEq = do (LispList args) <- getSymbol "..."  
@@ -106,16 +106,13 @@ notTwoElementList :: LispExpr -> Bool
 notTwoElementList (LispList list) = length list /= 2
 notTwoElementList _ =  False
 
--- Lambda function creation
+-- function creation
 lispLambdaArgs = ["args", "..."]
 lispLambda = do [(LispList args), (LispList body)] <- getSymbols lispLambdaArgs
                 let newFn = do evalBody <- mapM eval body
                                return $ last evalBody
                 return $ LispLambda newFn (map show args)
 
-
-
--- Function creation
 lispFunArgs = ["name", "args", "..."]
 lispFun = do [(LispSymbol name), (LispList args), (LispList body)] <- getSymbols lispFunArgs
              let newFn = do evalBody <- mapM eval body

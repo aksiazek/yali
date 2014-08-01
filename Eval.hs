@@ -22,7 +22,7 @@ eval (LispSymbol s) = do context <- get
                      (Just parent) -> lookupSymbol parent
               
 eval (LispList []) = return (LispList [])
-eval (LispList (x:xs)) = eval x >>= (\fn -> apply fn)
+eval (LispList (x:xs)) = eval x >>= apply
 	where apply (LispSpecial f expectedArgs) = apply' expectedArgs xs f
 	      apply (LispLambda f expectedArgs) = do args <- mapM eval xs
                                                      apply' expectedArgs args f
